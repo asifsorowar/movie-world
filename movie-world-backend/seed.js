@@ -185,6 +185,14 @@ let movieRatings = [
   { userId: "test-user-1", rating: 3 },
 ];
 
+const users = [
+  "test-user-1",
+  "test-user-2",
+  "test-user-3",
+  "test-user-4",
+  "test-user-5",
+];
+
 function getRandomIndex(max) {
   return Math.floor(Math.random() * max);
 }
@@ -220,12 +228,15 @@ async function seed() {
   for (let movie of movies) {
     if (movie.status === "upcoming") continue;
 
-    const rating = new MovieRating({
-      ...movieRatings[getRandomIndex(movieRatings.length)],
-      movie: movie._id,
-    });
+    for (let user of users) {
+      const rating = new MovieRating({
+        ...movieRatings[getRandomIndex(movieRatings.length)],
+        movie: movie._id,
+        userId: user,
+      });
 
-    await rating.save();
+      await rating.save();
+    }
   }
 
   mongoose.disconnect();

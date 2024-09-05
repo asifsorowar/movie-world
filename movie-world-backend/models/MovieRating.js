@@ -21,19 +21,30 @@ const movieRatingSchema = new mongoose.Schema(
 );
 
 movieRatingSchema.post("save", async function () {
-  const result = await this.model(MODELS.MovieRating).aggregate([
-    { $match: { movie: this.movie } },
-    {
-      $group: {
-        _id: null,
-        average: { $avg: "$rating" },
-        totalRatings: { $sum: 1 },
-      },
-    },
-  ]);
+  const result = await this.model(MODELS.Movie)
+    .findById(this.movie)
+    .select(["averageRating", "totalRatings"]);
 
-  const newAverage = result.length > 0 ? result[0].average : 0;
-  const totalRatings = result.length > 0 ? result[0].totalRatings : 0;
+  const newAverage =
+    result.averageRating > 0
+      ? (result.averageRating * result.totalRatings + this.rating) /
+        (result.totalRatings + 1)
+      : this.rating;
+  const totalRatings = result.totalRatings + 1;
+
+  // const result = await this.model(MODELS.MovieRating).aggregate([
+  //   { $match: { movie: this.movie } },
+  //   {
+  //     $group: {
+  //       _id: null,
+  //       average: { $avg: "$rating" },
+  //       totalRatings: { $sum: 1 },
+  //     },
+  //   },
+  // ]);
+
+  // const newAverage = result.length > 0 ? result[0].average : 0;
+  // const totalRatings = result.length > 0 ? result[0].totalRatings : 0;
 
   await this.model(MODELS.Movie).findByIdAndUpdate(this.movie, {
     averageRating: newAverage,
